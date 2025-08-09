@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kariveppila - Movie Reviews</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .star-rating { color: #fbbf24; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        /* Custom modal styles */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-backdrop.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .modal-backdrop.active .modal-content {
+            transform: scale(1);
+        }
+        /* Poster overlay styles */
+        .poster-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .poster-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .poster-content {
+            max-width: 90%;
+            max-height: 90%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            text-align: center;
+        }
+        .poster-overlay.active .poster-content {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-bold">🎬 Kariveppila</h1>
+                    <p class="text-xl opacity-90 mt-2">Your trusted source for movie reviews</p>
+                </div>
+                <nav class="hidden md:flex space-x-6">
+                    <a href="#" class="hover:text-yellow-300 transition-colors font-medium">Home</a>
+                    <a href="#" class="hover:text-yellow-300 transition-colors font-medium">Reviews</a>
+                    <a href="#" onclick="showTopRatedPoster(event)" class="hover:text-yellow-300 transition-colors font-medium cursor-pointer">Top Rated</a>
+                    <a href="#" class="hover:text-yellow-300 transition-colors font-medium">About</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Featured Review -->
+    <section class="container mx-auto px-6 py-12">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden card-hover">
+            <div class="md:flex">
+                <div class="md:w-1/3 bg-gradient-to-br from-orange-600 to-red-700 flex items-center justify-center p-8 relative overflow-hidden">
+                    <img class="absolute inset-0 w-full h-full" viewBox="0 0 200 200" src="/kk.jpg">
+                        <!-- Kummattikali Mask -->
+                        <defs>
+                            <linearGradient id="maskGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#FF8C00;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#DC143C;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="featherGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#32CD32;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#228B22;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- Main mask face -->
+                        <ellipse cx="100" cy="110" rx="45" ry="55" fill="url(#maskGrad)" stroke="#8B4513" stroke-width="3"/>
+                        
+                        <!-- Eyes -->
+                        <ellipse cx="85" cy="95" rx="8" ry="12" fill="#000" />
+                        <ellipse cx="115" cy="95" rx="8" ry="12" fill="#000" />
+                        <ellipse cx="85" cy="93" rx="3" ry="5" fill="#FFF" />
+                        <ellipse cx="115" cy="93" rx="3" ry="5" fill="#FFF" />
+                        
+                        <!-- Nose -->
+                        <path d="M100 105 L95 115 L100 120 L105 115 Z" fill="#8B4513" stroke="#654321" stroke-width="1"/>
+                        
+                        <!-- Mouth -->
+                        <path d="M90 130 Q100 140 110 130" stroke="#000" stroke-width="3" fill="none"/>
+                        <ellipse cx="100" cy="135" rx="8" ry="4" fill="#8B0000"/>
+                        
+                        <!-- Decorative patterns -->
+                        <circle cx="70" cy="85" r="3" fill="#FFD700"/>
+                        <circle cx="130" cy="85" r="3" fill="#FFD700"/>
+                        <circle cx="75" cy="125" r="2" fill="#FF4500"/>
+                        <circle cx="125" cy="125" r="2" fill="#FF4500"/>
+                        
+                        <!-- Feather crown -->
+                        <g transform="translate(100,50)">
+                            <!-- Central feather -->
+                            <path d="M0 0 Q-3 -15 0 -30 Q3 -15 0 0" fill="url(#featherGrad)" stroke="#228B22" stroke-width="1"/>
+                            <!-- Side feathers -->
+                            <path d="M-15 5 Q-18 -10 -15 -25 Q-12 -10 -15 5" fill="url(#featherGrad)" stroke="#228B22" stroke-width="1"/>
+                            <path d="M15 5 Q18 -10 15 -25 Q12 -10 15 5" fill="url(#featherGrad)" stroke="#228B22" stroke-width="1"/>
+                            <!-- Outer feathers -->
+                            <path d="M-25 10 Q-28 -5 -25 -20 Q-22 -5 -25 10" fill="#32CD32" stroke="#228B22" stroke-width="1"/>
+                            <path d="M25 10 Q28 -5 25 -20 Q22 -5 25 10" fill="#32CD32" stroke="#228B22" stroke-width="1"/>
+                        </g>
+                        
+                        <!-- Traditional ornaments -->
+                        <circle cx="100" cy="75" r="4" fill="#FFD700" stroke="#B8860B" stroke-width="1"/>
+                        <path d="M100 70 L95 65 L100 60 L105 65 Z" fill="#FFD700" stroke="#B8860B" stroke-width="1"/>
+                        
+                        <!-- Side decorations -->
+                        <g opacity="0.8">
+                            <circle cx="60" cy="110" r="2" fill="#FF6347"/>
+                            <circle cx="140" cy="110" r="2" fill="#FF6347"/>
+                            <circle cx="65" cy="100" r="1.5" fill="#FFD700"/>
+                            <circle cx="135" cy="100" r="1.5" fill="#FFD700"/>
+                        </g>
+                    </svg>
+                    <div class="absolute bottom-4 text-center text-white w-full px-4">
+                        <h3 class="text-2xl font-bold drop-shadow-lg">Featured Review</h3>
+                        <p class="text-sm opacity-90">Kummattikali</p>
+                    </div>
+                </div>
+                <div class="md:w-2/3 p-8">
+                    <div class="flex items-center mb-4">
+                        <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">Featured</span>
+                        <div class="ml-4 flex items-center">
+                            <div class="star-rating text-xl">★★★★★</div>
+                            <span class="ml-2 text-gray-600 font-medium">5.0/5</span>
+                        </div>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-3">The Cinematic Masterpiece</h2>
+                    <p class="text-gray-600 mb-4 leading-relaxed">
+                        "എന്തിനാടാ കൊന്നിട്ട്? ഇവൾടെ മകളും നമ്മളെപ്പോലെ തന്തയില്ലെന്ന് പറയാനോ? നമ്മൾ അനാഥരാണ്, പക്ഷെ ഗുണ്ടകളല്ല"
+                    </p>
+                    <p class="text-gray-500 italic text-sm leading-relaxed mt-2">
+                        "Why did you kill him? So that her daughter can also be called fatherless like us? We are orphans, but not thugs."
+                    </p>
+                    <div class="flex items-center justify-between mt-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold">
+                                AJ
+                            </div>
+                            <div class="ml-3">
+                                <p class="font-medium text-gray-800">Maddy Sura</p>
+                                <p class="text-sm text-gray-500">Senior Film Critic</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                        <button class="read-review-btn bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                            Read Full Review
+                        </button>
+                            <button id="upload-video-btn" class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011 1v16a1 1 0 01-1 1H7a1 1 0 01-1-1V5a1 1 0 011-1h10z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12l4-4m0 0l4 4m-4-4v9"></path>
+                                </svg>
+                                Upload Video
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Reviews -->
+    <section class="container mx-auto px-6 pb-12">
+        <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Latest Reviews</h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Review Card 1 - Superman -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                <div class="h-48 bg-gradient-to-br from-red-600 to-blue-800 flex items-center justify-center relative overflow-hidden">
+                    <img class="absolute inset-0 w-full h-full" viewBox="0 0 200 200" src="/1.jpg">
+                        <!-- Superman S Shield -->
+                        <defs>
+                            <linearGradient id="supermanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Shield background -->
+                        <path d="M100 30 L140 50 L140 130 L100 170 L60 130 L60 50 Z" fill="url(#supermanGrad)" stroke="#B8860B" stroke-width="2"/>
+                        <!-- S Letter -->
+                        <path d="M80 70 Q90 60 110 70 Q120 80 110 90 L90 90 Q100 100 110 110 Q90 120 80 110 Q70 100 80 90 L100 90 Q90 80 80 70" fill="#DC143C" stroke="#8B0000" stroke-width="1"/>
+                    </svg>
+                    <div class="absolute bottom-4 left-4 text-white">
+                        <h3 class="text-xl font-bold drop-shadow-lg">Superman</h3>
+                        <p class="text-sm opacity-90">Legacy</p>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="star-rating">★★★★☆</div>
+                        <span class="text-gray-600 font-medium">4.2/5</span>
+                    </div>
+                    <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                        "A triumphant return for the Man of Steel. Spectacular action sequences and a heartfelt story that honors the character's legacy while bringing fresh perspective."
+                    </p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                SM
+                            </div>
+                            <span class="ml-2 text-sm text-gray-700 font-medium">Sura Miller</span>
+                        </div>
+                        <button class="read-review-btn text-purple-600 hover:text-purple-800 text-sm font-medium transition-colors">
+                            Read More
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Card 2 - F1 -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                <div class="h-48 bg-gradient-to-br from-red-500 to-black flex items-center justify-center relative overflow-hidden">
+                    <img class="absolute inset-0 w-full h-full" viewBox="0 0 200 200" src="/2.jpg">
+                        <!-- Racing track -->
+                        <path d="M20 100 Q50 60 100 100 Q150 140 180 100" stroke="#FFD700" stroke-width="4" fill="none" opacity="0.7"/>
+                        <path d="M20 110 Q50 70 100 110 Q150 150 180 110" stroke="#FFD700" stroke-width="4" fill="none" opacity="0.7"/>
+                        
+                        <!-- F1 Car silhouette -->
+                        <g transform="translate(80,90)">
+                            <!-- Car body -->
+                            <ellipse cx="20" cy="10" rx="35" ry="8" fill="#E50000"/>
+                            <!-- Front wing -->
+                            <rect x="-10" y="6" width="15" height="8" fill="#333" rx="2"/>
+                            <!-- Rear wing -->
+                            <rect x="45" y="4" width="8" height="12" fill="#333" rx="1"/>
+                            <!-- Wheels -->
+                            <circle cx="5" cy="18" r="4" fill="#1a1a1a"/>
+                            <circle cx="35" cy="18" r="4" fill="#1a1a1a"/>
+                            <circle cx="5" cy="2" r="4" fill="#1a1a1a"/>
+                            <circle cx="35" cy="2" r="4" fill="#1a1a1a"/>
+                        </g>
+                        
+                        <!-- Speed lines -->
+                        <g opacity="0.6">
+                            <line x1="10" y1="80" x2="40" y2="80" stroke="#FFD700" stroke-width="2"/>
+                            <line x1="15" y1="90" x2="35" y2="90" stroke="#FFD700" stroke-width="2"/>
+                            <line x1="10" y1="120" x2="40" y2="120" stroke="#FFD700" stroke-width="2"/>
+                            <line x1="15" y1="130" x2="35" y2="130" stroke="#FFD700" stroke-width="2"/>
+                        </g>
+                    </svg>
+                    <div class="absolute bottom-4 left-4 text-white">
+                        <h3 class="text-xl font-bold drop-shadow-lg">F1</h3>
+                        <p class="text-sm opacity-90">Drive to Survive</p>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="star-rating">★★★★★</div>
+                        <span class="text-gray-600 font-medium">4.8/5</span>
+                    </div>
+                    <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                        "An adrenaline-fueled masterpiece that captures the intensity and drama of Formula 1 racing. Exceptional cinematography and heart-pounding action sequences."
+                    </p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                MR
+                            </div>
+                            <span class="ml-2 text-sm text-gray-700 font-medium">Mike Telepathy</span>
+                        </div>
+                        <button class="read-review-btn text-purple-600 hover:text-purple-800 text-sm font-medium transition-colors">
+                            Read More
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Card 3 - Thunderbolts -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                <div class="h-48 bg-gradient-to-br from-purple-700 to-indigo-900 flex items-center justify-center relative overflow-hidden">
+                    <img class="absolute inset-0 w-full h-full" viewBox="0 0 200 200" src="/3.jpg">
+                        <!-- Lightning bolts -->
+                        <defs>
+                            <linearGradient id="lightningGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#FFA500;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#FF6347;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- Main lightning bolt -->
+                        <path d="M100 20 L85 60 L105 60 L90 100 L110 100 L95 140 L115 140 L100 180 L120 140 L105 140 L120 100 L100 100 L115 60 L95 60 Z" 
+                              fill="url(#lightningGrad)" stroke="#FFD700" stroke-width="1" opacity="0.9"/>
+                        
+                        <!-- Side lightning bolts -->
+                        <path d="M60 40 L50 70 L65 70 L55 100 L70 100 L60 130" 
+                              fill="url(#lightningGrad)" stroke="#FFD700" stroke-width="1" opacity="0.6"/>
+                        <path d="M140 50 L150 80 L135 80 L145 110 L130 110 L140 140" 
+                              fill="url(#lightningGrad)" stroke="#FFD700" stroke-width="1" opacity="0.6"/>
+                        
+                        <!-- Energy particles -->
+                        <circle cx="70" cy="80" r="2" fill="#FFD700" opacity="0.8"/>
+                        <circle cx="130" cy="90" r="2" fill="#FFD700" opacity="0.8"/>
+                        <circle cx="85" cy="120" r="1.5" fill="#FFA500" opacity="0.7"/>
+                        <circle cx="115" cy="70" r="1.5" fill="#FFA500" opacity="0.7"/>
+                        <circle cx="60" cy="110" r="1" fill="#FF6347" opacity="0.6"/>
+                        <circle cx="140" cy="120" r="1" fill="#FF6347" opacity="0.6"/>
+                    </svg>
+                    <div class="absolute bottom-4 left-4 text-white">
+                        <h3 class="text-xl font-bold drop-shadow-lg">Thunderbolts</h3>
+                        <p class="text-sm opacity-90">Marvel Studios</p>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="star-rating">★★★★☆</div>
+                        <span class="text-gray-600 font-medium">4.1/5</span>
+                    </div>
+                    <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                        "A thrilling ensemble piece that brings together Marvel's antiheroes. Great character development and explosive action sequences make this a standout entry."
+                    </p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                LC
+                            </div>
+                            <span class="ml-2 text-sm text-gray-700 font-medium">Damu Dasayil</span>
+                        </div>
+                        <button class="read-review-btn text-purple-600 hover:text-purple-800 text-sm font-medium transition-colors">
+                            Read More
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="bg-white py-12">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-4 gap-8 text-center">
+                <div class="p-6">
+                    <div class="text-4xl font-bold text-purple-600 mb-2">1,247</div>
+                    <p class="text-gray-600 font-medium">Movies Reviewed</p>
+                </div>
+                <div class="p-6">
+                    <div class="text-4xl font-bold text-blue-600 mb-2">89%</div>
+                    <p class="text-gray-600 font-medium">Accuracy Rate</p>
+                </div>
+                <div class="p-6">
+                    <div class="text-4xl font-bold text-green-600 mb-2">25K+</div>
+                    <p class="text-gray-600 font-medium">Happy Readers</p>
+                </div>
+                <div class="p-6">
+                    <div class="text-4xl font-bold text-red-600 mb-2">4.9</div>
+                    <p class="text-gray-600 font-medium">Average Rating</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Signup -->
+    <section class="gradient-bg py-12">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-3xl font-bold text-white mb-4">Stay Updated</h2>
+            <p class="text-xl text-white opacity-90 mb-8">Get the latest movie reviews delivered to your inbox</p>
+            <div class="max-w-md mx-auto flex gap-4">
+                <input id="email-input" type="email" placeholder="Enter your email" 
+                       class="flex-1 px-4 py-3 rounded-lg border-0 focus:ring-2 focus:ring-yellow-300 outline-none">
+                <button id="subscribe-btn" class="bg-yellow-400 hover:bg-yellow-500 text-gray-800 px-6 py-3 rounded-lg font-bold transition-colors">
+                    Subscribe
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-6 text-center">
+            <div class="flex justify-center items-center mb-4">
+                <span class="text-2xl">🎬</span>
+                <span class="ml-2 text-xl font-bold">Kariveppila</span>
+            </div>
+            <p class="text-gray-400 mb-4">Your trusted source for honest movie reviews</p>
+            <div class="flex justify-center space-x-6 text-sm">
+                <a href="#" class="hover:text-yellow-300 transition-colors">Privacy Policy</a>
+                <a href="#" class="hover:text-yellow-300 transition-colors">Terms of Service</a>
+                <a href="#" class="hover:text-yellow-300 transition-colors">Contact Us</a>
+            </div>
+            <p class="text-gray-500 text-sm mt-4">© 2024 Kariveppila. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Custom Modal -->
+    <div id="custom-modal" class="modal-backdrop">
+        <div class="modal-content text-center">
+            <p id="modal-message" class="text-lg text-gray-700 mb-4"></p>
+            <button id="modal-close-btn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium">Close</button>
+        </div>
+    </div>
+
+    <!-- Video Upload Modal -->
+    <div id="video-upload-modal" class="modal-backdrop">
+        <div class="modal-content max-w-2xl w-full mx-4">
+            <div class="text-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">Upload Video Review</h3>
+                <p class="text-gray-600">Share your own video review for this movie</p>
+            </div>
+            
+            <!-- Upload Area -->
+            <div id="upload-area" class="border-2 border-dashed border-gray-300 rounded-xl p-8 mb-6 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                <div id="upload-content">
+                    <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011 1v16a1 1 0 01-1-1H7a1 1 0 01-1-1V5a1 1 0 011-1h10z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12l4-4m0 0l4 4m-4-4v9"></path>
+                    </svg>
+                    <h4 class="text-xl font-semibold text-gray-700 mb-2">Drop your video here</h4>
+                    <p class="text-gray-500 mb-4">or click to browse files</p>
+                    <p class="text-sm text-gray-400">Supports MP4, MOV, AVI (Max 100MB)</p>
+                </div>
+                <input type="file" id="video-file-input" accept="video/*" class="hidden">
+            </div>
+
+            <!-- Video Preview -->
+            <div id="video-preview" class="hidden mb-6">
+                <video id="preview-video" class="w-full rounded-lg shadow-lg" controls>
+                    Your browser does not support the video tag.
+                </video>
+                <div class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span class="text-green-800 font-medium" id="file-name">Video uploaded successfully!</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Progress -->
+            <div id="upload-progress" class="hidden mb-6">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-gray-600">Uploading...</span>
+                    <span class="text-sm text-gray-600" id="progress-percentage">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="progress-bar" class="bg-gradient-to-r from-purple-600 to-orange-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Video Details Form -->
+            <div id="video-details" class="hidden mb-6">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Video Title</label>
+                        <input type="text" id="video-title" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="My review of this movie">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                        <input type="text" id="reviewer-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="Enter your name">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+                        <div class="flex items-center space-x-2">
+                            <div id="star-rating-input" class="flex space-x-1">
+                                <button class="star-btn text-2xl text-gray-300 hover:text-yellow-400 transition-colors" data-rating="1">★</button>
+                                <button class="star-btn text-2xl text-gray-300 hover:text-yellow-400 transition-colors" data-rating="2">★</button>
+                                <button class="star-btn text-2xl text-gray-300 hover:text-yellow-400 transition-colors" data-rating="3">★</button>
+                                <button class="star-btn text-2xl text-gray-300 hover:text-yellow-400 transition-colors" data-rating="4">★</button>
+                                <button class="star-btn text-2xl text-gray-300 hover:text-yellow-400 transition-colors" data-rating="5">★</button>
+                            </div>
+                            <span id="rating-display" class="text-gray-600 ml-2">0/5</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Actions -->
+            <div class="flex gap-4 justify-end">
+                <button id="video-modal-close" class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">Cancel</button>
+                <button id="submit-video" class="hidden px-6 py-2 bg-gradient-to-r from-purple-600 to-orange-600 text-white rounded-lg hover:from-purple-700 hover:to-orange-700 transition-all">Submit Review</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Rated Poster Overlay -->
+    <div id="top-rated-poster-overlay" class="poster-overlay" onclick="hideTopRatedPoster()">
+        <div class="poster-content" onclick="event.stopPropagation()">
+            <img src="/ind.jpg" alt="Indian 2 - Top Rated Movie" class="rounded-lg shadow-2xl max-w-full max-h-full">
+            <div class="text-center mt-6">
+                <h3 class="text-4xl font-bold text-white mb-2">Indian 2</h3>
+                <p class="text-2xl text-yellow-300 mb-2">⭐ Top Rated Movie</p>
+                <p class="text-xl text-gray-300 mb-4">The Vigilante Returns</p>
+                <div class="flex justify-center items-center space-x-2 mb-4">
+                    <div class="star-rating text-2xl">★★★★★</div>
+                    <span class="text-white text-xl font-bold">4.9/5</span>
+                </div>
+                <p class="text-lg text-gray-400">Highest rated movie on Kariveppila</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('custom-modal');
+            const modalMessage = document.getElementById('modal-message');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+
+            // Function to show the modal with a message
+            function showModal(message) {
+                modalMessage.textContent = message;
+                modal.classList.add('active');
+            }
+
+            // Function to hide the modal
+            function hideModal() {
+                modal.classList.remove('active');
+            }
+
+            // Close modal when the close button is clicked
+            modalCloseBtn.addEventListener('click', hideModal);
+            // Close modal when clicking on the backdrop
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    hideModal();
+                }
+            });
+
+            // Newsletter subscription
+            const subscribeBtn = document.getElementById('subscribe-btn');
+            const emailInput = document.getElementById('email-input');
+            
+            if (subscribeBtn && emailInput) {
+                subscribeBtn.addEventListener('click', function() {
+                    const email = emailInput.value.trim();
+                    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                        showModal('Thank you for subscribing! (This is a demo - no actual subscription created)');
+                        emailInput.value = '';
+                    } else {
+                        showModal('Please enter a valid email address.');
+                    }
+                });
+            }
+
+            // Navigation functionality for different buttons
+            const readMoreBtns = document.querySelectorAll('.read-review-btn');
+            
+            readMoreBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const buttonText = btn.textContent.trim();
+                    
+                    if (buttonText === 'Read Full Review') {
+                        // Navigate to full review page with YouTube videos
+                        window.location.href = 'read-full-review.html';
+                    } else if (buttonText === 'Read More') {
+                        // Navigate to read more page with YouTube videos
+                        window.location.href = 'read-more.html';
+                    }
+                });
+            });
+
+            // Video Upload functionality
+            const videoUploadModal = document.getElementById('video-upload-modal');
+            const uploadVideoBtn = document.getElementById('upload-video-btn');
+            const videoModalClose = document.getElementById('video-modal-close');
+            const uploadArea = document.getElementById('upload-area');
+            const videoFileInput = document.getElementById('video-file-input');
+            const videoPreview = document.getElementById('video-preview');
+            const previewVideo = document.getElementById('preview-video');
+            const uploadProgress = document.getElementById('upload-progress');
+            const progressBar = document.getElementById('progress-bar');
+            const progressPercentage = document.getElementById('progress-percentage');
+            const videoDetails = document.getElementById('video-details');
+            const submitVideoBtn = document.getElementById('submit-video');
+            const fileName = document.getElementById('file-name');
+
+            let selectedFile = null;
+            let userRating = 0;
+
+            // Open video upload modal
+            if (uploadVideoBtn) {
+                uploadVideoBtn.addEventListener('click', function() {
+                    videoUploadModal.classList.add('active');
+                    resetUploadModal();
+                });
+            }
+
+            // Close video upload modal
+            function closeVideoModal() {
+                videoUploadModal.classList.remove('active');
+                resetUploadModal();
+            }
+
+            if (videoModalClose) {
+                videoModalClose.addEventListener('click', closeVideoModal);
+            }
+
+            // Close modal when clicking on backdrop
+            videoUploadModal.addEventListener('click', function(e) {
+                if (e.target === videoUploadModal) {
+                    closeVideoModal();
+                }
+            });
+
+            // Reset modal to initial state
+            function resetUploadModal() {
+                selectedFile = null;
+                userRating = 0;
+                videoPreview.classList.add('hidden');
+                uploadProgress.classList.add('hidden');
+                videoDetails.classList.add('hidden');
+                submitVideoBtn.classList.add('hidden');
+                uploadArea.classList.remove('hidden');
+                document.getElementById('video-title').value = '';
+                document.getElementById('reviewer-name').value = '';
+                updateStarRating(0);
+            }
+
+            // File upload handling
+            uploadArea.addEventListener('click', function() {
+                videoFileInput.click();
+            });
+
+            // Drag and drop functionality
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('border-purple-400', 'bg-purple-50');
+            });
+
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('border-purple-400', 'bg-purple-50');
+            });
+
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('border-purple-400', 'bg-purple-50');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileSelection(files[0]);
+                }
+            });
+
+            // File input change
+            videoFileInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    handleFileSelection(e.target.files[0]);
+                }
+            });
+
+            // Handle file selection
+            function handleFileSelection(file) {
+                // Validate file type
+                if (!file.type.startsWith('video/')) {
+                    showModal('Please select a valid video file.');
+                    return;
+                }
+
+                // Validate file size (100MB limit)
+                const maxSize = 100 * 1024 * 1024; // 100MB in bytes
+                if (file.size > maxSize) {
+                    showModal('File size must be less than 100MB.');
+                    return;
+                }
+
+                selectedFile = file;
+                displayVideoPreview(file);
+                showUploadProgress();
+            }
+
+            // Display video preview
+            function displayVideoPreview(file) {
+                const fileURL = URL.createObjectURL(file);
+                previewVideo.src = fileURL;
+                fileName.textContent = file.name;
+                
+                uploadArea.classList.add('hidden');
+                videoPreview.classList.remove('hidden');
+                videoDetails.classList.remove('hidden');
+                submitVideoBtn.classList.remove('hidden');
+            }
+
+            // Show upload progress animation
+            function showUploadProgress() {
+                uploadProgress.classList.remove('hidden');
+                
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            uploadProgress.classList.add('hidden');
+                        }, 500);
+                    }
+                    progressBar.style.width = progress + '%';
+                    progressPercentage.textContent = Math.round(progress) + '%';
+                }, 100);
+            }
+
+            // Star rating functionality
+            const starBtns = document.querySelectorAll('.star-btn');
+            const ratingDisplay = document.getElementById('rating-display');
+
+            starBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    userRating = parseInt(this.dataset.rating);
+                    updateStarRating(userRating);
+                });
+
+                btn.addEventListener('mouseenter', function() {
+                    const rating = parseInt(this.dataset.rating);
+                    highlightStars(rating);
+                });
+            });
+
+            document.getElementById('star-rating-input').addEventListener('mouseleave', function() {
+                updateStarRating(userRating);
+            });
+
+            function updateStarRating(rating) {
+                starBtns.forEach((btn, index) => {
+                    if (index < rating) {
+                        btn.classList.remove('text-gray-300');
+                        btn.classList.add('text-yellow-400');
+                    } else {
+                        btn.classList.remove('text-yellow-400');
+                        btn.classList.add('text-gray-300');
+                    }
+                });
+                ratingDisplay.textContent = rating + '/5';
+            }
+
+            function highlightStars(rating) {
+                starBtns.forEach((btn, index) => {
+                    if (index < rating) {
+                        btn.classList.remove('text-gray-300');
+                        btn.classList.add('text-yellow-400');
+                    } else {
+                        btn.classList.remove('text-yellow-400');
+                        btn.classList.add('text-gray-300');
+                    }
+                });
+            }
+
+            // Submit video review
+            if (submitVideoBtn) {
+                submitVideoBtn.addEventListener('click', function() {
+                    const videoTitle = document.getElementById('video-title').value.trim();
+                    const reviewerName = document.getElementById('reviewer-name').value.trim();
+
+                    if (!videoTitle) {
+                        showModal('Please enter a title for your video review.');
+                        return;
+                    }
+
+                    if (!reviewerName) {
+                        showModal('Please enter your name.');
+                        return;
+                    }
+
+                    if (userRating === 0) {
+                        showModal('Please provide a rating for the movie.');
+                        return;
+                    }
+
+                    // Simulate video upload process
+                    submitVideoBtn.textContent = 'Submitting...';
+                    submitVideoBtn.disabled = true;
+
+                    setTimeout(() => {
+                        showModal(`Thank you ${reviewerName}! Your video review "${videoTitle}" has been submitted successfully. (This is a demo - no actual video was uploaded)`);
+                        closeVideoModal();
+                        submitVideoBtn.textContent = 'Submit Review';
+                        submitVideoBtn.disabled = false;
+                    }, 2000);
+                });
+            }
+
+            // Top Rated poster functionality
+            window.showTopRatedPoster = function(event) {
+                event.preventDefault();
+                document.getElementById('top-rated-poster-overlay').classList.add('active');
+            };
+
+            window.hideTopRatedPoster = function() {
+                document.getElementById('top-rated-poster-overlay').classList.remove('active');
+            };
+
+            // Close poster overlay with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    hideTopRatedPoster();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
+</html>
+
+

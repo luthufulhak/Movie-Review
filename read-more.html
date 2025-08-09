@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Reviews - Kariveppila</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .star-rating { color: #fbbf24; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .video-thumbnail {
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            border-radius: 0.75rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .video-thumbnail:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        }
+        .video-thumbnail::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            z-index: 2;
+            transition: background 0.3s ease;
+        }
+        .video-thumbnail:hover::before {
+            background: rgba(0, 0, 0, 0.9);
+        }
+        .video-thumbnail::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 52%;
+            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid white;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            z-index: 3;
+        }
+        .poster-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .poster-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .poster-content {
+            max-width: 90%;
+            max-height: 90%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .poster-overlay.active .poster-content {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <button onclick="goBack()" class="mr-4 p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="text-4xl font-bold">🎬 Kariveppila</h1>
+                        <p class="text-xl opacity-90 mt-2">Video Reviews Collection</p>
+                    </div>
+                </div>
+                <nav class="hidden md:flex space-x-6">
+                    <a href="index.html" class="hover:text-yellow-300 transition-colors font-medium">Home</a>
+                    <a href="#" class="hover:text-yellow-300 transition-colors font-medium">Reviews</a>
+                    <a href="#" onclick="showTopRatedPoster(event)" class="hover:text-yellow-300 transition-colors font-medium cursor-pointer">Top Rated</a>
+                    <a href="#" class="hover:text-yellow-300 transition-colors font-medium">About</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Video Reviews Section -->
+    <section class="container mx-auto px-6 py-12">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-gray-800 mb-4">Video Reviews</h2>
+            <p class="text-xl text-gray-600">Watch our latest movie review videos</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-2 gap-8 mb-12">
+            <!-- Video 1 -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                <div class="video-thumbnail h-64" onclick="openYouTube('https://youtu.be/wYmy9-A3TKc?si=uD8xr_nloUIgE5DB')">
+                    <img src="https://img.youtube.com/vi/wYmy9-A3TKc/maxresdefault.jpg" alt="Movie Review 1" class="w-full h-full object-cover">
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Movie Review #1</h3>
+                    <p class="text-gray-600 mb-4">An in-depth review of the latest blockbuster movie with detailed analysis and critique.</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="star-rating">★★★★☆</div>
+                            <span class="ml-2 text-gray-600 font-medium">4.2/5</span>
+                        </div>
+                        <button onclick="openYouTube('https://youtu.be/wYmy9-A3TKc?si=uD8xr_nloUIgE5DB')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            Watch Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Video 2 -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                <div class="video-thumbnail h-64" onclick="openYouTube('https://youtu.be/c-n7SqPTHsg?si=ISeU_2S3X7MC5BOh')">
+                    <img src="https://img.youtube.com/vi/c-n7SqPTHsg/maxresdefault.jpg" alt="Movie Review 2" class="w-full h-full object-cover">
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Movie Review #2</h3>
+                    <p class="text-gray-600 mb-4">A comprehensive analysis of this critically acclaimed film with insider perspectives.</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="star-rating">★★★★★</div>
+                            <span class="ml-2 text-gray-600 font-medium">4.8/5</span>
+                        </div>
+                        <button onclick="openYouTube('https://youtu.be/c-n7SqPTHsg?si=ISeU_2S3X7MC5BOh')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            Watch Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Video 3 -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                <div class="video-thumbnail h-64" onclick="openYouTube('https://youtu.be/sP-glCG2z1E?si=NvvIfGh-EWC2sMaX')">
+                    <img src="https://img.youtube.com/vi/sP-glCG2z1E/maxresdefault.jpg" alt="Movie Review 3" class="w-full h-full object-cover">
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Movie Review #3</h3>
+                    <p class="text-gray-600 mb-4">Expert commentary on the latest cinema release with detailed breakdown of performances.</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="star-rating">★★★★☆</div>
+                            <span class="ml-2 text-gray-600 font-medium">4.1/5</span>
+                        </div>
+                        <button onclick="openYouTube('https://youtu.be/sP-glCG2z1E?si=NvvIfGh-EWC2sMaX')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            Watch Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Video 4 -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                <div class="video-thumbnail h-64" onclick="openYouTube('https://youtu.be/_PRy1_jywfk?si=uo-b44YXzrIoGI-b')">
+                    <img src="https://img.youtube.com/vi/_PRy1_jywfk/maxresdefault.jpg" alt="Movie Review 4" class="w-full h-full object-cover">
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Movie Review #4</h3>
+                    <p class="text-gray-600 mb-4">Professional movie critique with audience reactions and box office predictions.</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="star-rating">★★★★☆</div>
+                            <span class="ml-2 text-gray-600 font-medium">4.3/5</span>
+                        </div>
+                        <button onclick="openYouTube('https://youtu.be/_PRy1_jywfk?si=uo-b44YXzrIoGI-b')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            Watch Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Special Movie Poster Section -->
+        <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Featured Movie</h3>
+            <p class="text-gray-600 mb-6">Click on the poster to view Indian 2</p>
+            <div class="flex justify-center">
+                <div class="cursor-pointer transform hover:scale-105 transition-transform duration-300" onclick="showPoster()">
+                    <img src="/ind.jpg" alt="Featured Movie" class="rounded-lg shadow-lg max-w-xs">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Poster Overlay -->
+    <div id="poster-overlay" class="poster-overlay" onclick="hidePoster()">
+        <div class="poster-content" onclick="event.stopPropagation()">
+            <img src="/ind.jpg" alt="Indian 2 Poster" class="rounded-lg shadow-2xl max-w-full max-h-full">
+            <div class="text-center mt-4">
+                <h3 class="text-3xl font-bold text-white mb-2">Indian 2</h3>
+                <p class="text-xl text-gray-300">The Vigilante Returns</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Rated Poster Overlay -->
+    <div id="top-rated-poster-overlay" class="poster-overlay" onclick="hideTopRatedPoster()">
+        <div class="poster-content" onclick="event.stopPropagation()">
+            <img src="/ind.jpg" alt="Indian 2 - Top Rated Movie" class="rounded-lg shadow-2xl max-w-full max-h-full">
+            <div class="text-center mt-6">
+                <h3 class="text-4xl font-bold text-white mb-2">Indian 2</h3>
+                <p class="text-2xl text-yellow-300 mb-2">⭐ Top Rated Movie</p>
+                <p class="text-xl text-gray-300 mb-4">The Vigilante Returns</p>
+                <div class="flex justify-center items-center space-x-2 mb-4">
+                    <div class="star-rating text-2xl">★★★★★</div>
+                    <span class="text-white text-xl font-bold">4.9/5</span>
+                </div>
+                <p class="text-lg text-gray-400">Highest rated movie on Kariveppila</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-6 text-center">
+            <div class="flex justify-center items-center mb-4">
+                <span class="text-2xl">🎬</span>
+                <span class="ml-2 text-xl font-bold">Kariveppila</span>
+            </div>
+            <p class="text-gray-400 mb-4">Your trusted source for honest movie reviews</p>
+            <div class="flex justify-center space-x-6 text-sm">
+                <a href="#" class="hover:text-yellow-300 transition-colors">Privacy Policy</a>
+                <a href="#" class="hover:text-yellow-300 transition-colors">Terms of Service</a>
+                <a href="#" class="hover:text-yellow-300 transition-colors">Contact Us</a>
+            </div>
+            <p class="text-gray-500 text-sm mt-4">© 2024 Kariveppila. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Function to go back to the previous page
+        function goBack() {
+            if (document.referrer && document.referrer.includes(window.location.host)) {
+                window.history.back();
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Function to open YouTube video
+        function openYouTube(url) {
+            window.open(url, '_blank');
+        }
+
+        // Function to show poster overlay
+        function showPoster() {
+            document.getElementById('poster-overlay').classList.add('active');
+        }
+
+        // Function to hide poster overlay
+        function hidePoster() {
+            document.getElementById('poster-overlay').classList.remove('active');
+        }
+
+        // Close poster overlay with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hidePoster();
+                hideTopRatedPoster();
+            }
+        });
+
+        // Top Rated poster functionality
+        function showTopRatedPoster(event) {
+            event.preventDefault();
+            document.getElementById('top-rated-poster-overlay').classList.add('active');
+        }
+
+        function hideTopRatedPoster() {
+            document.getElementById('top-rated-poster-overlay').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
